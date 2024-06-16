@@ -1,0 +1,29 @@
+[package]
+name = "stm32f429-rust-abgabe"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m-rt = "0.6.11"
+ili9341 = { git = "https://github.com/flaminggoat/ili9341-rs.git", branch = "parallel_gpio" }
+oorandom = "11.1.0"
+embedded-hal = "0.2.3"
+rtt-target = "0.5.0"
+panic-halt = "0.2.0"
+
+[dependencies.cortex-m]
+version = "0.7.7"
+features = ["critical-section-single-core"]
+
+[dependencies.embedded-graphics]
+version = "0.6.0-alpha.2"
+features = ["bmp"]
+
+[dependencies.stm32f4xx-hal]
+version = "0.6.0"
+features = ["stm32f429", "rt"]
+
+#[dependencies.ili9341]
+#path = "../ili9341-controller"

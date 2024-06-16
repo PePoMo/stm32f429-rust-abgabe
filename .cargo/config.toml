@@ -1,0 +1,22 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+# für cargo run mit GDB Session:
+#   runner = "arm-none-eabi-gdb -q -x openocd.gdb"
+#   runner = "gdb-multiarch -q -x openocd.gdb"
+#   runner = "gdb -q -x openocd.gdb"
+#   runner = "gdb-multiarch -q -x bmp.gdb"
+
+rustflags = [
+  # LLD (shipped with the Rust toolchain) is used as the default linker
+  "-C", "link-arg=-Tlink.x",
+
+  # GNU Linker falls Probleme mit LLD
+  #   "-C", "linker=arm-none-eabi-ld",
+
+  # GCC Linker für Libs aus einer C Toolchain
+  #   "-C", "linker=arm-none-eabi-gcc",
+  #   "-C", "link-arg=-Wl,-Tlink.x",
+  #   "-C", "link-arg=-nostartfiles",
+]
+
+[build]
+target = "thumbv7em-none-eabihf" # Cortex-M4F oder Cortex-M7F (mit FPU)
