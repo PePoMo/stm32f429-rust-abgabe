@@ -1,7 +1,7 @@
 use embedded_hal::blocking::spi;
 use embedded_hal::spi::{Mode, Phase, Polarity};
 use embedded_hal::digital::v2::OutputPin;
-use crate::{Interface, Error};
+use crate::{ili9341_controller::Interface, ili9341_controller::Error};
 
 /// SPI mode
 pub const MODE: Mode = Mode {

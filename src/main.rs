@@ -11,7 +11,7 @@ use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::{Circle, Rectangle};
 use embedded_hal::digital::v2::OutputPin;
 // use generic_array::{ArrayLength, GenericArray};
-use ili9341;
+//use ili9341;
 use oorandom;
 use panic_halt as _;
 
@@ -22,6 +22,9 @@ use crate::hal::{
     stm32
 };
 use stm32f4xx_hal as hal;
+
+pub mod ili9341_controller;
+use crate::ili9341_controller:: {spi, Ili9341, Orientation};
 
 #[entry]
 fn main() -> ! {
@@ -59,7 +62,7 @@ fn main() -> ! {
                 hal::spi::NoMiso,
                 gpiof.pf9.into_alternate_af5(),
             ),
-            ili9341::spi::MODE,
+            spi::MODE,
             20_000_000.hz(),
             clocks,
         );
@@ -67,12 +70,12 @@ fn main() -> ! {
         let cs = gpioc.pc2.into_push_pull_output();
         let dc = gpiod.pd13.into_push_pull_output();
 
-        let if_spi = ili9341::spi::SpiInterface::new(spi, cs, dc);
+        let if_spi = spi::SpiInterface::new(spi, cs, dc);
 
         // ---------- SPI INTERFACE SETUP ENDE -------------
 
-        let mut lcd = ili9341::Ili9341::new(if_spi, en, &mut delay).unwrap();
-        lcd.set_orientation(ili9341::Orientation::Landscape)
+        let mut lcd = Ili9341::new(if_spi, en, &mut delay).unwrap();
+        lcd.set_orientation(Orientation::Landscape)
             .unwrap();
 
         let temp_cal = hal::signature::VtempCal30::get().read();

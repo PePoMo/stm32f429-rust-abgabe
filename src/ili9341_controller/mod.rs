@@ -1,7 +1,4 @@
-#![no_std]
-
-#[cfg(feature = "graphics")]
-extern crate embedded_graphics;
+use embedded_graphics;
 
 use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::blocking::spi::{Write, Transfer};
@@ -12,8 +9,6 @@ use core::iter::IntoIterator;
 
 pub mod spi;
 use spi::SpiInterface;
-
-pub mod gpio;
 
 /// Trait representing the interface to the hardware.
 ///
@@ -287,12 +282,9 @@ impl<IfaceE, PinE, IFACE, RESET> Ili9341<IFACE, RESET>
     }
 }
 
-#[cfg(feature = "graphics")]
 use embedded_graphics::drawable;
-#[cfg(feature = "graphics")]
 use embedded_graphics::{drawable::Pixel, pixelcolor::Rgb565, Drawing};
 
-#[cfg(feature = "graphics")]
 impl<IfaceE, PinE, IFACE, RESET> Drawing<Rgb565> for Ili9341<IFACE, RESET>
 where
     IFACE: Interface<Error = IfaceE>,
