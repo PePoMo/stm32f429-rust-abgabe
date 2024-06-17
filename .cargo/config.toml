@@ -9,6 +9,8 @@ rustflags = [
   # LLD (shipped with the Rust toolchain) is used as the default linker
   "-C", "link-arg=-Tlink.x",
 
+  "--emit", "asm",
+
   # GNU Linker falls Probleme mit LLD
   #   "-C", "linker=arm-none-eabi-ld",
 

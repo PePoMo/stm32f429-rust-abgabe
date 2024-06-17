@@ -1,9 +1,9 @@
-#![deny(unsafe_code)]
 #![no_main]
 #![no_std]
 
+use core::arch::asm;
 use rtt_target::{rtt_init_print, rprintln};
-use cortex_m_rt::entry;
+use cortex_m_rt::{entry, exception};
 use embedded_graphics::fonts::Font12x16;
 use embedded_graphics::image::ImageBmp;
 use embedded_graphics::pixelcolor::Rgb565;
@@ -14,6 +14,7 @@ use embedded_hal::digital::v2::OutputPin;
 //use ili9341;
 use oorandom;
 use panic_halt as _;
+use core::mem::MaybeUninit;
 
 use crate::hal::{
     prelude::*,
@@ -23,8 +24,28 @@ use crate::hal::{
 };
 use stm32f4xx_hal as hal;
 
-pub mod ili9341_controller;
+mod ili9341_controller;
 use crate::ili9341_controller:: {spi, Ili9341, Orientation};
+
+mod scheduler;
+use crate::scheduler::{Scheduler, SchedulingStrategy};
+use crate::scheduler::context_switch::{Task, TaskHandler};
+
+// Dummy Werte, werden in init_scheduler sinnvoller initialisiert
+static mut SCHEDULER: Scheduler = Scheduler {
+    strategy: SchedulingStrategy::RoundRobin,
+    task_queue: MaybeUninit::uninit(),
+    num_tasks: 0,
+    current_task_id: 0,
+    next_task: 0 as *mut u32,
+    current_task: 0 as *mut u32
+};
+
+const TASK_STACK_SIZE: u32 = 40;  // in 4 Byte also 160 Byte
+
+unsafe fn init_scheduler(strategy: SchedulingStrategy) {
+    SCHEDULER = Scheduler::new(strategy);
+}
 
 #[entry]
 fn main() -> ! {
@@ -136,5 +157,61 @@ fn main() -> ! {
             i = i + 1;
         }
     }
+
+    unsafe { init_scheduler(SchedulingStrategy::RoundRobin); }
+
     loop {}
+}
+
+#[exception]
+fn PendSV() {
+    unsafe {
+    let local_curr_task = SCHEDULER.current_task;
+    let local_next_task = SCHEDULER.next_task;
+    
+    /*
+    asm!(
+    /* __disable_irq(); */
+    "  CPSID I",
+
+    /* if (local_curr_task != (OSThread *)0) { */
+    "  LDR  r1,={0}",
+    "  LDR  r1,[r1,#0x00]",
+    "  CBZ  r1,2f ",
+
+    /*     push registers r4-r11 on the stack */
+    "  PUSH {{r4-r11}}",
+
+    /*     local_curr_task->sp = sp; */
+    "  LDR  r1,={0}",
+    "  LDR  r1,[r1,#0x00]",
+    "  STR  sp,[r1,#0x00]",
+    /* } */
+
+    "2:",
+    /* sp = local_next_task->sp; */
+    "  LDR  r1,={1}",
+    "  LDR  r1,[r1,#0x00]",
+    "  LDR  sp,[r1,#0x00]",
+
+    /* local_curr_task = local_next_task; */
+    "  LDR  r1,={1}",
+    "  LDR  r1,[r1,#0x00]",
+    "  LDR  r2,={0}",
+    "  STR  r1,[r2,#0x00]",
+
+    /* pop registers r4-r11 */
+    "  POP  {{r4-r11}}",
+
+    /* __enable_irq(); */
+    "  CPSIE I",
+
+    /* return to the next thread */
+    "  BX  lr",
+    in(reg) local_curr_task,
+    in(reg) local_next_task,
+    );
+    */
+    
+    }
 }
