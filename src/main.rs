@@ -170,6 +170,8 @@ fn PendSV() {
     let local_next_task = SCHEDULER.next_task;
     
     /*
+					/* // Inline Assembly für Context Switch
+					/* // aus: https://youtu.be/TEq3-p0GWGI?si=2GW9c8E3DRtkuhEZ
     asm!(
     /* __disable_irq(); */
     "  CPSID I",
